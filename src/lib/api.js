@@ -116,10 +116,11 @@
 //   return request("/api/messages");
 // }
 // API_URL এর শেষে যদি '/' থাকে, তা রিমুভ করা হচ্ছে এবং লোকাল ডেভেলপমেন্টের জন্য ফলব্যাক রাখা হচ্ছে
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
+// API_URL এর শেষে যদি '/' থাকে, তা রিমুভ করা হচ্ছে এবং লোকাল ডেভেলপমেন্টের জন্য ফলব্যাক রাখা হচ্ছে
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 // FastAPI-র error থেকে একটা পড়ার মতো message বের করে
-function getErrorMessage(data: any) {
+function getErrorMessage(data) {
   if (!data || !data.detail) {
     return "Something went wrong";
   }
@@ -133,7 +134,7 @@ function getErrorMessage(data: any) {
 }
 
 // সব API call এখান দিয়ে যাবে
-async function request(url: string, options: RequestInit = {}) {
+async function request(url, options = {}) {
   let res;
 
   try {
@@ -150,7 +151,7 @@ async function request(url: string, options: RequestInit = {}) {
 
   if (!res.ok) {
     const err = new Error(getErrorMessage(data));
-    (err as any).status = res.status;
+    err.status = res.status;
     throw err;
   }
 
@@ -158,8 +159,7 @@ async function request(url: string, options: RequestInit = {}) {
 }
 
 // --- Public Routes (FastAPI Backend) ---
-
-export function registerUser(name: string, email: string, password: string) {
+export function registerUser(name, email, password) {
   return request(`${API_URL}/register`, {
     method: "POST",
     body: JSON.stringify({ name, email, password }),
@@ -174,21 +174,21 @@ export function getSkills() {
   return request(`${API_URL}/skills`);
 }
 
-export function forgotPassword(email: string) {
+export function forgotPassword(email) {
   return request(`${API_URL}/forgot-password`, {
     method: "POST",
     body: JSON.stringify({ email }),
   });
 }
 
-export function verifyOtp(email: string, code: string) {
+export function verifyOtp(email, code) {
   return request(`${API_URL}/verify-otp`, {
     method: "POST",
     body: JSON.stringify({ email, code }),
   });
 }
 
-export function resetPassword(email: string, newPassword: string) {
+export function resetPassword(email, newPassword) {
   return request(`${API_URL}/reset-password`, {
     method: "POST",
     body: JSON.stringify({ email, new_password: newPassword }),
@@ -196,9 +196,7 @@ export function resetPassword(email: string, newPassword: string) {
 }
 
 // --- Auth & Protected Routes (FastAPI Backend) ---
-// আগে এখানে API_URL ছিল না, তাই ফ্রন্টএন্ডে হিট করছিল। এখন ঠিক করা হয়েছে।
-
-export function loginUser(email: string, password: string) {
+export function loginUser(email, password) {
   return request(`${API_URL}/api/auth/login`, {
     method: "POST",
     body: JSON.stringify({ email, password }),
@@ -217,21 +215,21 @@ export function getUsers() {
   return request(`${API_URL}/api/users`);
 }
 
-export function addProject(project: any) {
+export function addProject(project) {
   return request(`${API_URL}/api/projects`, {
     method: "POST",
     body: JSON.stringify(project),
   });
 }
 
-export function updateProject(id: string | number, project: any) {
+export function updateProject(id, project) {
   return request(`${API_URL}/api/projects/${id}`, {
     method: "PUT",
     body: JSON.stringify(project),
   });
 }
 
-export function deleteProject(id: string | number) {
+export function deleteProject(id) {
   return request(`${API_URL}/api/projects/${id}`, { method: "DELETE" });
 }
 
